@@ -8,6 +8,11 @@ let ghost = {
   y:180 
 };
 
+let enemy = {
+  x:120,
+  y:180
+};
+
 
 function setup(){
   createCanvas(480, 360);
@@ -16,19 +21,42 @@ function setup(){
 }
  
 function draw(){
-  background("#3B3153");
-  noStroke();
-
   let elapsed = (millis() - startTime) / 1000;
   let timeLeft = max(0, duration - elapsed);
+  
+  let bgGradient = map(timeLeft, 0, duration, 10, 35);
+  background(bgGradient - 5, bgGradient, bgGradient + 25);
+  
+  stroke(255, 255, 255, 10);
+  strokeWeight(1);
+  for (let i = 0; i < width; i += 40) {
+    line(i, 0, i, 300);
+  }
+  for (let j = 0; j < 300; j += 40) {
+    line(0, j, width, j);
+  }
+  noStroke();
 
   ghost.x += random(-3,3);
   ghost.y += random(-3,3);
+  
+  ghost.x = constrain(ghost.x, 30, width - 30);
+  ghost.y = constrain(ghost.y, 30, 270);
 
-  drawGhost(ghost.x,ghost.y);
+  enemy.x += random(-4,4);
+  enemy.y += random(-4,4);
+  enemy.x = constrain(enemy.x, 30, width - 30);
+  enemy.y = constrain(enemy.y, 30, 270);
 
-  fill(40, 30, 50);  //light-purple
+  if (state === 'play') {
+    drawGhost(ghost.x,ghost.y);
+    drawEnemy(enemy.x,enemy.y);
+  }
+
+  fill(8, 10, 18);  
   rect(0, 300, 480, 60);
+  fill(0, 240, 255);
+  rect(0, 300, 480, 3);
 
   fill(255);
   textSize(22);
@@ -42,7 +70,7 @@ function draw(){
     textAlign(CENTER, CENTER);
     fill(255);
     textSize(22);
-    text('Click to start\nCatch the Theif', width / 2, height / 2);
+    text('Click to start\nCatch the Thief\nAvoid the Red Enemy!', width / 2, height / 2);
     return;
   }
 
@@ -64,35 +92,52 @@ function draw(){
 
 
 function drawGhost(x,y){
-  fill(0,0,0); //yellow
+  fill(15, 15, 25); 
   ellipse(x, y, 60, 60);
   
-
-  fill(255,255,255)
-  ellipse(x-12, y-5, 10);
-  ellipse(x+12, y-5, 10);
-
-  fill(255,255,255);
-  ellipse(200,400,70,70);
-
+  fill(0, 240, 255); 
+  ellipse(x-12, y-5, 12);
+  ellipse(x+12, y-5, 12);
   
+  fill(255);
+  ellipse(x-12, y-5, 4);
+  ellipse(x+12, y-5, 4);
+}
+
+function drawEnemy(x,y){
+  fill(245, 60, 85);
+  ellipse(x, y, 50, 50);
   
+  fill(255, 235, 30);
+  ellipse(x-10, y-4, 14, 8);
+  ellipse(x+10, y-4, 14, 8);
+  
+  fill(0);
+  ellipse(x-10, y-4, 4);
+  ellipse(x+10, y-4, 4);
 }
 
 function mousePressed(){
-  if (dist(mouseX,mouseY, ghost.x, ghost.y) < 30) {
-    score +=1;
-
-     if (state === 'start' || state === 'over') {
-    state = 'play';
-    score = 0;
-    startTime = millis();
-    drawGhost();
+  if (state === 'play' && dist(mouseX,mouseY, ghost.x, ghost.y) < 30) {
+    score += 1;
+    ghost.x += random(-80,80);
+    ghost.y += random(-80,80);
     return;
   }
 
-    ghost.x += random(-80,80);
-    ghost.y += random(-80,80);
-    drawGhost(ghost.x,ghost.y);
+  if (state === 'play' && dist(mouseX,mouseY, enemy.x, enemy.y) < 25) {
+    score -= 2;
+    enemy.x += random(-120,120);
+    enemy.y += random(-120,120);
+    return;
+  }
+
+  if (state === 'start' || state === 'over') {
+    state = 'play';
+    score = 0;
+    startTime = millis();
+    return;
   }
 }
+
+
